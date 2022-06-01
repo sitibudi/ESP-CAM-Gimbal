@@ -20,11 +20,9 @@
 
 #include "camera_pins.h"
 
-const char* ssid = "STUDIO GAMING";
-const char* password = "sukaayamgoreng";
 //================================
-//const char* ssid = "Bro-Bor";
-//const char* password = "9434276267";
+const char* ssid = ""; // fill data according to the name of the ssid
+const char* password = ""; // fill data according to the name of the password ssid
 //================================
 
 
@@ -46,8 +44,8 @@ long durationb,distanceb ;
 // ===================
 // Firebase setup
 // ===================
-#define DATABASE_URL "my-app-30024-default-rtdb.firebaseio.com/" //<databaseName>.firebaseio.com or <databaseName>.<region>.firebasedatabase.app
-#define DATABASE_SECRET "ELzrulkWhlXHGoULahavaYHIPATNHqp955X5fhgM"
+#define DATABASE_URL " " //fill data according to the database URL from firebase
+#define DATABASE_SECRET " " // fill data according to the database secret from firebase
 /* Define the Firebase Data object */
 FirebaseData fbdo;
 
