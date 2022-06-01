@@ -1,19 +1,18 @@
-#include "esp_camera.h"
+//============================================================LIBRARY=====================================================
 #include <WiFi.h>
+#include <ESP32Servo.h> 
+#include <FirebaseESP32.h>
+#include "esp_camera.h"
 
+//============================================================DONE=====================================================
+
+//==========================================================INITIALIZATION=====================================================
 // ===================
 // Select camera model
 // ===================
 //#define CAMERA_MODEL_WROVER_KIT // Has PSRAM
 //#define CAMERA_MODEL_ESP_EYE // Has PSRAM
-//#define CAMERA_MODEL_ESP32S3_EYE // Has PSRAM
-//#define CAMERA_MODEL_M5STACK_PSRAM // Has PSRAM
-//#define CAMERA_MODEL_M5STACK_V2_PSRAM // M5Camera version B Has PSRAM
-//#define CAMERA_MODEL_M5STACK_WIDE // Has PSRAM
-//#define CAMERA_MODEL_M5STACK_ESP32CAM // No PSRAM
-//#define CAMERA_MODEL_M5STACK_UNITCAM // No PSRAM
 #define CAMERA_MODEL_AI_THINKER // Has PSRAM
-//#define CAMERA_MODEL_TTGO_T_JOURNAL // No PSRAM
 // ** Espressif Internal Boards **
 //#define CAMERA_MODEL_ESP32_CAM_BOARD
 //#define CAMERA_MODEL_ESP32S2_CAM_BOARD
@@ -21,11 +20,113 @@
 
 #include "camera_pins.h"
 
-const char* ssid = "HAPPY FAMILY";
-const char* password = "BIRBINTANG8888";
+const char* ssid = "STUDIO GAMING";
+const char* password = "sukaayamgoreng";
+//================================
+//const char* ssid = "Bro-Bor";
+//const char* password = "9434276267";
+//================================
 
+
+
+Servo servo0; 
+int jarak = 15; // atur jarak yang diinginkan untuk mengaktifkan sensor ultrasonic
+int dly = 5000; // nilai delay yang digunakan untuk mengatur jeda putaran servo ke bagian belakang
+// define Front Ultrasnoic
+#define echof 14
+#define trigf 2
+long durationf,distancef ;
+
+// define Back Ultrasnoic
+#define echob 15
+#define trigb 13
+long durationb,distanceb ;
+
+
+// ===================
+// Firebase setup
+// ===================
+#define DATABASE_URL "my-app-30024-default-rtdb.firebaseio.com/" //<databaseName>.firebaseio.com or <databaseName>.<region>.firebasedatabase.app
+#define DATABASE_SECRET "ELzrulkWhlXHGoULahavaYHIPATNHqp955X5fhgM"
+/* Define the Firebase Data object */
+FirebaseData fbdo;
+
+/* Define the FirebaseAuth data for authentication data */
+FirebaseAuth auth;
+
+/* Define the FirebaseConfig data for config data */
+FirebaseConfig config;
+
+String security; // read firebase 
+
+//============================================================DONE=====================================================
+
+
+//===========================================================FUNCTION=====================================================
 void startCameraServer();
 
+// function for ultrasonic setup pin mode
+void ultrasonicsetup(){   
+  pinMode(trigf,OUTPUT);
+  pinMode(echof,INPUT);
+  pinMode(trigb,OUTPUT);
+  pinMode(echob,INPUT);
+  
+}
+
+// function to activate front ultrasonic 
+void frontsystem(){
+  digitalWrite(trigf,LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigf,HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigf,LOW);
+  durationf = pulseIn(echof,HIGH); // get the pulse of the ultrasonic trigger and echo
+  
+  distancef = durationf / 58.2; // formula to convert ulrasonic pulse to distance value
+//  Serial.println(distancef); // to print distance value
+
+  if(distancef <jarak){  //jika mendeteksi jarak yang ditentukan maka arduino mengirim 
+  int tiga = 3; // angka 3 yang ke esp yang artinya ada benda/orang yang terdeteksi di mobil
+  //Firebase.setInt(dataObject,"path",target)
+  Firebase.setInt(fbdo,"/ESP_Cam/alarm",tiga);  // send data to firebase 
+
+  }
+  
+  else{ //jika tidak maka arduino mengirim angka 2 yang artinya tidak ada benda yang terdeteksi
+  int dua = 2;
+  Firebase.setInt(fbdo,"/ESP_Cam/alarm",dua);
+  }
+}
+
+//function to activate back ultrasonic 
+void backsystem(){
+   digitalWrite(trigb,LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigb,HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigb,LOW);
+  durationb = pulseIn(echob,HIGH);
+  
+  distanceb = durationb / 58.2;
+//  Serial.println(distanceb);
+  if(distanceb < jarak){
+
+  int tiga = 3;
+  Firebase.setInt(fbdo,"/ESP_Cam/alarm",tiga);
+    servo0.write(180); // servo memutar 180 derajat 
+    delay(dly); // delay digunakan untuk menahan servo disudut 180 derajat dengan jeda waktu yang ditentukan
+  }
+  else{
+    int dua = 2;
+    Firebase.setInt(fbdo,"/ESP_Cam/alarm",dua);
+    servo0.write(0);  //servo kembali ke posisi awal (0) jika tidak sensor tidak mendeteksi apa-apa
+  }
+
+  
+}
+
+// function for setup esp32 cam
 void espsetup(){
   Serial.setDebugOutput(true);
   Serial.println();
@@ -133,16 +234,50 @@ void espsetup(){
   Serial.println("' to connect");
 }
 
+// function for setup and connect firebase 
+void firebaseSetup(){
+  //========================Setup FIREBASE realtime database======================
+    Serial.printf("Firebase Client v%s\n\n", FIREBASE_CLIENT_VERSION);
 
+    /* Assign the certificate file (optional) */
+    //config.cert.file = "/cert.cer";
+    //config.cert.file_storage = StorageType::FLASH;
 
-//============================MAIN PROGRAM=====================================================
+    /* Assign the database URL and database secret(required) */
+    config.database_url = DATABASE_URL;
+    config.signer.tokens.legacy_token = DATABASE_SECRET;
+
+    Firebase.reconnectWiFi(true);
+
+    /* Initialize the library with the Firebase authen and config */
+    Firebase.begin(&config, &auth);
+//     Firebase.begin(DATABASE_URL,DATABASE_SECRET);
+    
+  Serial.setDebugOutput(true);
+  Serial.println();
+  
+}
+//============================================================DONE=====================================================
+
+//==========================================================MAIN PROGRAM=====================================================
 void setup() {
   Serial.begin(115200);
+  ///call all the function setup
+  ultrasonicsetup(); 
   espsetup();
-  
+  firebaseSetup();
+  servo0.attach(12); // servo attach to pin GPIO 12 in ESP32 CAM
+  servo0.write(0); // first thing to do is set the servo to 0 degree position
 }
 
 void loop() {
-  
-  
+//  =========================SECURITY LOGIC=====================================
+  Firebase.getString(fbdo,"/ESP_Cam/security",security); // firebase get the string from firebase from a spesific path
+ security = fbdo.stringData(); // move string data from firebase reading to the provided variable
+// Serial.println(security); // print firebase data to serial monitor
+if(security == "1"){ // jika security == 1 atau keamanan diaktifkan maka akan memanggil function untuk mengaktifkan sistem keamanan depan dan belakang
+ backsystem(); 
+ frontsystem();
+}
+
 }
