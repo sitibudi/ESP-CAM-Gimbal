@@ -8,7 +8,6 @@
 // I2Cdev and MPU6050 must be installed as libraries, or else the .cpp/.h files
 // for both classes must be in the include path of your project
 #include "I2Cdev.h"
-
 #include "MPU6050_6Axis_MotionApps20.h"
 //#include "MPU6050.h" // not necessary if using MotionApps include file
 
@@ -18,7 +17,6 @@
 #include "Wire.h"
 #endif
 #include <Servo.h>
-String ON[1];
 // class default I2C address is 0x68
 // specific I2C addresses may be passed as a parameter here
 // AD0 low = 0x68 (default for SparkFun breakout and InvenSense evaluation board)
@@ -27,27 +25,14 @@ MPU6050 mpu;
 //MPU6050 mpu(0x69); // <-- use for AD0 high
 
 //===================================DONE=================================
+
 //==================================INITIALIZATION==============================
-// Define the 3 servo motors
-Servo servo0;
+// Define the 2 servo motors
 Servo servo1;
 Servo servo2;
 float correct;
 int j = 0;
-int dly = 5000; 
-int jarak = 15; // variabel untuk menentukan nilai jarak yang akan mengaktifkan sistem security
-//ultrasonic front 
-#define echof 4
-#define trigf 5
-long durationf,distancef ;
-//ultrasonic back
-#define echob 6
-#define trigb 7
-long durationb,distanceb ;
-// define TX RX variable
-String security = "";
-String front = "";
-String back = "";
+
 #define OUTPUT_READABLE_YAWPITCHROLL
 
 #define INTERRUPT_PIN 2  // use pin 2 on Arduino Uno & most boards
@@ -86,8 +71,8 @@ void dmpDataReady() {
 }
 
 
-//==================================FUNCTION==============================
-// Gimbal running
+//==================================================FUNCTION=======================================
+// Gimbal running function
 void gimbal(){
   
   // if programming failed, don't try to do anything
@@ -137,8 +122,6 @@ void gimbal(){
 //    ypr[0] = ypr[0] * 180 / M_PI;
     ypr[1] = ypr[1] * 180 / M_PI;
     ypr[2] = ypr[2] * 180 / M_PI;
-//    Serial.println(ypr[0]);
-//    Serial.println(ypr[1]);
     // Skip 300 readings (self-calibration process)
     if (j <= 300) {
       correct = ypr[0]; // Yaw starts at random value, so we capture last value after 300 readings
@@ -161,69 +144,8 @@ void gimbal(){
 #endif
   }
 }
-// setup pin for both ultrasonic sensor
-void ultrasonicsetup(){   
-  pinMode(trigf,OUTPUT);
-  pinMode(echof,INPUT);
-  pinMode(trigb,OUTPUT);
-  pinMode(echob,INPUT);
-  
-}
 
-// function menjalankan ultrasonic bagian depan
-void frontsystem(){
-  digitalWrite(trigf,LOW);
-  delayMicroseconds(2);
-  digitalWrite(trigf,HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigf,LOW);
-  durationf = pulseIn(echof,HIGH);
-  
-  distancef = durationf / 58.2;
-  if(distancef <jarak){  //jika mendeteksi jarak yang ditentukan maka arduino mengirim 
-    ON[1]='3';                 // angka 3 yang ke esp yang artinya ada benda/orang yang terdeteksi di mobil
-//    Serial.println(ON[1]); 
-Serial.println('3');  
-  }
-  else{
-    ON[0]='2'; 
-//    Serial.println(ON[0]);   //jika tidak maka arduino mengirim angka 2 yang artinya tidak ada benda yang terdeteksi
-  Serial.println('2');
-  }
-  
-  
-}
-
-//function menjalankan ultrasonic bagian belakang
-void backsystem(){
-   digitalWrite(trigb,LOW);
-  delayMicroseconds(2);
-  digitalWrite(trigb,HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigb,LOW);
-  durationb = pulseIn(echob,HIGH);
-  
-  distanceb = durationb / 58.2;
-  if(distanceb < jarak){
-    ON[1]='3'; 
-//    Serial.println(ON[1]);
-    Serial.println('3');
-    servo0.write(180);
-    
-    
-  }
-  else{
-    ON[0] = '2';
-//    Serial.println(ON[0]);
-Serial.println('2');
-    servo0.write(0);
-  }
-
-  
-}
-
-
-//===================================DONE=================================
+//===================================================DONE==============================================
 
 // ================================================================
 // ===                      INITIAL SETUP                       ===
@@ -249,7 +171,7 @@ void setup() {
   //Serial.println(F("Initializing I2C devices..."));
   mpu.initialize();
   pinMode(INTERRUPT_PIN, INPUT);
-  ultrasonicsetup();
+ 
   devStatus = mpu.dmpInitialize();
   
   mpu.setXGyroOffset(17); //17
@@ -282,13 +204,11 @@ void setup() {
     //Serial.println(F(")"));
   }
 
-  // Define the pins to which the 3 servo motors are connected
-  servo0.attach(10); //YAW
+  // Define the pins to which the 2 servo motors are connected
   servo1.attach(9); //ROLL
   servo2.attach(8); //PITCH
-
-  servo0.write(0);
 }
+
 // ================================================================
 // ===                    MAIN PROGRAM LOOP                     ===
 // ================================================================
@@ -297,22 +217,4 @@ void loop() {
   
   gimbal(); //memanggil fungsi gimbal yang berisi perintah untuk melakukan stabilizer modul
   
-  if(Serial.available()){
-//  security += char(Serial.read());
- security =Serial.readStringUntil('\n');
-  int security1 = security.toInt();
-  Serial.println(security);
-  
-  if(security1 == 1){
-
-  backsystem();
-  frontsystem();
-  }
-  else{
-    servo0.write(0);
-    ON[0]='2';
-//    Serial.println(ON[0]);
-  Serial.println('2');
-  }
-}
 }
