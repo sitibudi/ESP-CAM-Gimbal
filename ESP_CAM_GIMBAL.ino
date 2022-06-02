@@ -28,7 +28,8 @@ const char* password = ""; // fill data according to the name of the password ss
 
 
 Servo servo0; 
-int jarak = 15; // atur jarak yang diinginkan untuk mengaktifkan sensor ultrasonic
+int jarakb = 15; // atur jarak yang diinginkan untuk mengaktifkan sensor ultrasonic belakang
+int jarakf = 15; // atur jarak yang diinginkan untuk mengaktifkan sensor ultrasonic depan
 int dly = 5000; // nilai delay yang digunakan untuk mengatur jeda putaran servo ke bagian belakang
 // define Front Ultrasnoic
 #define echof 14
@@ -84,7 +85,7 @@ void frontsystem(){
   distancef = durationf / 58.2; // formula to convert ulrasonic pulse to distance value
 //  Serial.println(distancef); // to print distance value
 
-  if(distancef <jarak){  //jika mendeteksi jarak yang ditentukan maka arduino mengirim 
+  if(distancef <jarakf){  //jika mendeteksi jarak yang ditentukan maka arduino mengirim 
   int tiga = 3; // angka 3 yang ke esp yang artinya ada benda/orang yang terdeteksi di mobil
   //Firebase.setInt(dataObject,"path",target)
   Firebase.setInt(fbdo,"/ESP_Cam/alarm",tiga);  // send data to firebase 
@@ -108,7 +109,7 @@ void backsystem(){
   
   distanceb = durationb / 58.2;
 //  Serial.println(distanceb);
-  if(distanceb < jarak){
+  if(distanceb < jarakb){
 
   int tiga = 3;
   Firebase.setInt(fbdo,"/ESP_Cam/alarm",tiga);
