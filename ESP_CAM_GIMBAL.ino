@@ -20,9 +20,14 @@
 
 #include "camera_pins.h"
 
+//const char* ssid = "Siti budi iPhone";
+//const char* password = "luncuran123";
+
+const char* ssid = "Redmi Note 9"; //http://192.168.161.62
+const char* password = "akusayangkamu";
 //================================
-const char* ssid = ""; // fill data according to the name of the ssid
-const char* password = ""; // fill data according to the name of the password ssid
+//const char* ssid = "Bro-Bor";
+//const char* password = "9434276267";
 //================================
 
 
@@ -41,12 +46,16 @@ long durationf,distancef ;
 #define trigb 13
 long durationb,distanceb ;
 
+//rotate
+String rot;
+int rot1;
+String security; // read firebase 
 
 // ===================
 // Firebase setup
 // ===================
-#define DATABASE_URL " " //fill data according to the database URL from firebase
-#define DATABASE_SECRET " " // fill data according to the database secret from firebase
+#define DATABASE_URL "my-app-30024-default-rtdb.firebaseio.com/" //<databaseName>.firebaseio.com or <databaseName>.<region>.firebasedatabase.app
+#define DATABASE_SECRET "ELzrulkWhlXHGoULahavaYHIPATNHqp955X5fhgM"
 /* Define the Firebase Data object */
 FirebaseData fbdo;
 
@@ -56,7 +65,7 @@ FirebaseAuth auth;
 /* Define the FirebaseConfig data for config data */
 FirebaseConfig config;
 
-String security; // read firebase 
+
 
 //============================================================DONE=====================================================
 
@@ -70,6 +79,15 @@ void ultrasonicsetup(){
   pinMode(echof,INPUT);
   pinMode(trigb,OUTPUT);
   pinMode(echob,INPUT);
+  
+}
+// function to activate controlling rotation servo from firebase value
+void rotate(){
+  
+  Firebase.getString(fbdo,"/ESP_Cam/rotate",rot);
+  rot = fbdo.stringData();
+  rot1 = rot.toInt();
+  servo0.write(rot1);
   
 }
 
@@ -274,9 +292,13 @@ void loop() {
   Firebase.getString(fbdo,"/ESP_Cam/security",security); // firebase get the string from firebase from a spesific path
  security = fbdo.stringData(); // move string data from firebase reading to the provided variable
 // Serial.println(security); // print firebase data to serial monitor
-if(security == "1"){ // jika security == 1 atau keamanan diaktifkan maka akan memanggil function untuk mengaktifkan sistem keamanan depan dan belakang
- backsystem(); 
- frontsystem();
+  if(security == "1"){ // jika security == 1 atau keamanan diaktifkan maka akan memanggil function untuk mengaktifkan sistem keamanan depan dan belakang
+  backsystem(); 
+  frontsystem();
+  rotate();
+  }
+  else{
+  int dua = 2;
+    Firebase.setInt(fbdo,"/ESP_Cam/alarm",dua);
 }
-
 }
