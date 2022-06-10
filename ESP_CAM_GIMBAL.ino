@@ -93,7 +93,7 @@ void rotate(){
 
 // function to activate front ultrasonic 
 void frontsystem(){
-  depan = false;
+
   digitalWrite(trigf,LOW);
   delayMicroseconds(2);
   digitalWrite(trigf,HIGH);
@@ -104,14 +104,14 @@ void frontsystem(){
   distancef = durationf / 58.2; // formula to convert ulrasonic pulse to distance value
 //  Serial.println(distancef); // to print distance value
 
-  if(distancef <jarakf){  //jika mendeteksi jarak yang ditentukan maka arduino mengirim 
-  int tiga = 1; // angka 3 yang ke esp yang artinya ada benda/orang yang terdeteksi di mobil
+  if(distancef <jarakf){  //jika mendeteksi jarak yang ditentukan maka arduino mengirim angka 1 yang ke esp yang artinya ada benda/orang yang terdeteksi di mobil
+  int tiga = 1; 
   //Firebase.setInt(dataObject,"path",target)
   Firebase.setInt(fbdo,"/ESP_Cam/alarm",tiga);  // send data to firebase 
 
   }
   
-  else{ //jika tidak maka arduino mengirim angka 2 yang artinya tidak ada benda yang terdeteksi
+  else{ //jika tidak maka arduino mengirim angka 0 yang artinya tidak ada benda yang terdeteksi
   int dua = 0;
   Firebase.setInt(fbdo,"/ESP_Cam/alarm",dua);
   }
