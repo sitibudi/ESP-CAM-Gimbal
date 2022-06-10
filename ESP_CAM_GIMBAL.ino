@@ -38,13 +38,13 @@ int dly = 5000; // nilai delay yang digunakan untuk mengatur jeda putaran servo 
 #define echof 14
 #define trigf 2
 long durationf,distancef ;
-bool depan = false;
+
 
 // define Back Ultrasnoic
 #define echob 15
 #define trigb 13
 long durationb,distanceb ;
-bool belakang = false;
+
 
 //rotate
 String rot;
@@ -105,23 +105,21 @@ void frontsystem(){
 //  Serial.println(distancef); // to print distance value
 
   if(distancef <jarakf){  //jika mendeteksi jarak yang ditentukan maka arduino mengirim 
-  depan = false;
-  int tiga = 3; // angka 3 yang ke esp yang artinya ada benda/orang yang terdeteksi di mobil
+  int tiga = 1; // angka 3 yang ke esp yang artinya ada benda/orang yang terdeteksi di mobil
   //Firebase.setInt(dataObject,"path",target)
   Firebase.setInt(fbdo,"/ESP_Cam/alarm",tiga);  // send data to firebase 
 
   }
   
   else{ //jika tidak maka arduino mengirim angka 2 yang artinya tidak ada benda yang terdeteksi
-  int dua = 2;
+  int dua = 0;
   Firebase.setInt(fbdo,"/ESP_Cam/alarm",dua);
-  depan = true;
   }
 }
 
 //function to activate back ultrasonic 
 void backsystem(){
-  belakang = false;
+ 
    digitalWrite(trigb,LOW);
   delayMicroseconds(2);
   digitalWrite(trigb,HIGH);
@@ -130,19 +128,19 @@ void backsystem(){
   durationb = pulseIn(echob,HIGH);
   
   distanceb = durationb / 58.2;
-  Serial.println(distanceb);
+//   Serial.println(distanceb);
   if(distanceb < jarakb){
-    belakang = false;
-  int tiga = 3;
+    
+  int tiga = 1;
   Firebase.setInt(fbdo,"/ESP_Cam/alarm",tiga);
-    servo0.write(180); // servo memutar 180 derajat 
-    delay(dly); // delay digunakan untuk menahan servo disudut 180 derajat dengan jeda waktu yang ditentukan
+//     servo0.write(180); // servo memutar 180 derajat 
+//     delay(dly); // delay digunakan untuk menahan servo disudut 180 derajat dengan jeda waktu yang ditentukan
   }
   else{
-    belakang = true;
-    int dua = 2;
+   
+    int dua = 0;
     Firebase.setInt(fbdo,"/ESP_Cam/alarm",dua);
-    servo0.write(0);  //servo kembali ke posisi awal (0) jika tidak sensor tidak mendeteksi apa-apa
+//     servo0.write(0);  //servo kembali ke posisi awal (0) jika tidak sensor tidak mendeteksi apa-apa
   }
 
   
@@ -300,12 +298,10 @@ void loop() {
   if(security == "1"){ // jika security == 1 atau keamanan diaktifkan maka akan memanggil function untuk mengaktifkan sistem keamanan depan dan belakang
   backsystem(); 
   frontsystem();
-    if (depan==true and belakang ==true){
-      rotate();  
-      }
+  rotate();  
   }
   else{
-  int dua = 2;
+  int dua = 0;
   Firebase.setInt(fbdo,"/ESP_Cam/alarm",dua);
 
   rot = "0";
