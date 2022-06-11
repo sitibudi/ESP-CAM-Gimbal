@@ -1,1 +1,0 @@
-# ESP-CAM-Gimbal
