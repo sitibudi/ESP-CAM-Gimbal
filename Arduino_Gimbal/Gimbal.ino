@@ -139,7 +139,7 @@ void gimbal(){
       Serial.println(servo1Value);
       
       Serial.print("servo 2:");
-      Serial.println(servo1Value);
+      Serial.println(servo2Value);
       // Control the servos according to the MPU6050 orientation
 //      servo0.write(servo0Value);
       servo1.write(servo1Value-10);
