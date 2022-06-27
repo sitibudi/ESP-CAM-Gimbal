@@ -135,6 +135,11 @@ void gimbal(){
       int servo1Value = map(ypr[1], 90, -90, 0, 180); //ROLL
       int servo2Value = map(ypr[2], -90, 90, 180, 0); //PITCH
       
+      Serial.print("servo 1:");
+      Serial.println(servo1Value);
+      
+      Serial.print("servo 2:");
+      Serial.println(servo1Value);
       // Control the servos according to the MPU6050 orientation
 //      servo0.write(servo0Value);
       servo1.write(servo1Value-10);
